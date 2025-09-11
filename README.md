@@ -78,6 +78,37 @@ pip install ogc_ap_validator &&
 ap-validator cwl_workflows/process.cwl
 ```
 
+The OGC validator has an option to return the validation results in json format by adding the `--format` flag. For example:
+```
+ap-validator --format json cwl_workflows/process.cwl
+```
+
+Here is a sample response indicating the CWL is OGC-compliant:
+```
+{
+  "valid": true,
+  "issues": [],
+  "requirements": {}
+}
+```
+
+Here is a sample response indicating the CWL is NOT OGC-compliant:
+```
+{
+  "valid": false,
+  "issues": [
+    {
+      "type": "error",
+      "message": "Missing element for Workflow 'sardem-sarsen': doc",
+      "req": "req-9"
+    }
+  ],
+  "requirements": {
+    "req-9": "The Application Package CWL Workflow class SHALL contain the following elements: Identifier ('id'); Title ('label'); Abstract ('doc')."
+  }
+}
+```
+
 > [!NOTE]
 > If running this script outside of the GitHub action, it will only generate the CWL and not the Docker image. Users will have to update the Docker requirements in the generated CWL to point to an existing image if they wish to execute the workflow.
 
