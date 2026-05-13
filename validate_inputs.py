@@ -11,10 +11,10 @@ from urllib.parse import urlparse
 from pathlib import Path
 
 def validate_algorithm_config_file():
-    """Validate that the algorithm configuration file is a valid YAML file."""
-    config_path = os.environ.get('ALGORITHM_CONFIGURATION_PATH', '')
+    """Validate algorithm config yml file."""
+    config_path = os.environ.get('CONFIG_FILE_PATH', '')
     if not config_path:
-        print("ERROR: algorithm-configuration-path is required.")
+        print("ERROR: config-file-path is required.")
         return False
     
     try:
@@ -22,7 +22,7 @@ def validate_algorithm_config_file():
         with open(config_path, 'r') as f:
             yaml.safe_load(f)
     except yaml.YAMLError as e:
-        print(f"ERROR: Algorithm configuration file is not valid YAML: {e}")
+        print(f"ERROR: Algorithm configuration file provided is not valid YAML: {e}")
         return False
     except Exception as e:
         print(f"ERROR: Cannot read algorithm configuration file: {e}")
