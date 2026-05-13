@@ -1,5 +1,7 @@
 # OGC Application Package Generator
-GitHub action to build & deploy OGC application packages to the MAAP.
+GitHub action to build & deploy Open Geospatial Consortium (OGC) application packages to the MAAP. 
+
+An OGC application package is a [Common Workflow Language (CWL)](https://www.commonwl.org/) workflow with an executable (typically a Docker image). Algorithms that are bundled as OGC application packages may be run on any OGC-compliant platform without modification. For more information on the OGC standards, see [here](https://www.ogc.org/).
 
 This action builds a CWL workflow file and commits it to the client repository's working branch under `cwl_workflows/` by default. A docker image will be built from the user-provided Dockerfile then pushed to the client repository's GitHub Container Registry.
 
@@ -10,7 +12,7 @@ The CWL workflow file generated is validated using [cwltool](https://pypi.org/pr
 | Parameter        | Description           | Required | Default | Type  | Example |
 |:-------------|:---------------------|:-----:|:-----:|:-----:|:-------|
 | config-file-path | Path to the algorithm config file | Yes | - | string | `my_algo_repo/algorithm_config.yml` |
-| cwl-workflow-dir | Directory to which generated CWL workflow files will be written | No | `cwl_workflows/` | string | `cwl_workflows/` |
+| cwl-workflow-dir | Directory to which generated CWL workflow files will be written | No | `cwl_workflows` | string | `cwl_workflows` |
 | dockerfile-path | Path to Dockerfile that will be used to build the docker image | Yes | - | string | `my_algo_repo/Dockerfile` |
 | deploy-app-pack | Flag indicating whether or not to deploy the application package to a registry | No | false | Boolean | `true` |
 | app-pack-register-endpoint | URL to send registration request to | No | - | string | `https://api.uat.maap-project.org/api/ogc/processes` |
