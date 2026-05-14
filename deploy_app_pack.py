@@ -69,7 +69,7 @@ def deploy_app_pack(process_cwl_url, app_pack_registry, template_file):
         None
         
     Raises:
-        ValueError: Raises a ValueError if the MAAP_PGT token is not set. This token is required to deploy processes.
+        ValueError: Raises a ValueError if the MAAP token is not set. This token is required to deploy processes.
     """
     with open(template_file, 'r') as f:
         data = yaml.safe_load(f)
@@ -77,12 +77,12 @@ def deploy_app_pack(process_cwl_url, app_pack_registry, template_file):
     if data.get("executionUnit", {}).get("href"):
         data["executionUnit"]["href"] = process_cwl_url
 
-    maap_pgt_token = os.getenv('MAAP_PGT')
-    if not maap_pgt_token:
-        raise ValueError("Environment variable `MAAP_PGT` is not set.")
+    maap_token = os.getenv('MAAP_TOKEN')
+    if not maap_token:
+        raise ValueError("Environment variable `MAAP_TOKEN` is not set.")
 
     headers = {
-        'proxy-ticket': maap_pgt_token,
+        'proxy-ticket': maap_token,
         'Content-Type': 'application/json'
     }
 
