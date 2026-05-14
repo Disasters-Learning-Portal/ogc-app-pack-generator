@@ -57,7 +57,7 @@ jobs:
           app-pack-register-endpoint: https://api.uat.maap-project.org/api/ogc/processes
         env:
           # MAAP token is required to deploy the algorithm to the MAAP
-          MAAP_TOKEN: ${{ secrets.MAAP_TOKEN_MLUCAS }}
+          MAAP_TOKEN: ${{ secrets.MAAP_TOKEN }}
 ```
 
 Update the following action inputs:
