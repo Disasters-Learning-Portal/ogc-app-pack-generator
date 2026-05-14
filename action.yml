@@ -63,7 +63,7 @@ runs:
       shell: bash
 
     - name: Generate OGC application package CWL
-      run: python3 ${{ github.action_path }}/build_cwl_workflow.py --config-file-path ${{ inputs.config-file-path }} --cwl-template-file  ${{ github.action_path }}/templates/process.v1_2.cwl
+      run: python3 ${{ github.action_path }}/build_cwl_workflow.py --config-file-path ${{ inputs.config-file-path }} --cwl-workflow-dir ${{ inputs.cwl-workflow-dir }} --cwl-template-file  ${{ github.action_path }}/templates/process.v1_2.cwl
       shell: bash
       env:
         GITHUB_ACTION_PATH: ${{ github.action_path }}

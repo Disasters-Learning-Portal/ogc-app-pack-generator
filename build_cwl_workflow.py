@@ -30,7 +30,6 @@ build_cwl_workflow.py --config-file-path data/algorithm_config.yml --cwl-workflo
 import yaml
 import argparse
 import os
-import re
 from datetime import date
 import logging
 
