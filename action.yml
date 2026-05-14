@@ -88,7 +88,7 @@ runs:
     - name: Build and push algorithm Docker image
       if: ${{ inputs.dockerfile-path != '' }}
       id: push-algorithm
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         file: ${{ inputs.dockerfile-path }}
