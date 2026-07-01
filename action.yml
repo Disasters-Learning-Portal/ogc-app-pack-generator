@@ -5,6 +5,10 @@ inputs:
   algorithm-configuration-path:
     description: "Path to the algorithm configuration YAML file"
     required: true
+  cwl-workflow-dir:
+    description: "Directory the generated CWL workflow file will be written to"
+    required: false
+    default: "cwl_workflows"
   dockerfile-path:
     description: "Path to Dockerfile"
     required: false
@@ -37,7 +41,7 @@ runs:
       shell: bash
       env:
         DOCKERFILE_PATH: ${{ inputs.dockerfile-path }}
-        CONFIG_FILE_PATH: ${{ inputs.config-file-path }}
+        CONFIG_FILE_PATH: ${{ inputs.algorithm-configuration-path }}
 
     - name: Create env variable of lowercase GitHub repo name
       run: |
@@ -54,7 +58,7 @@ runs:
       shell: bash
 
     - name: Generate OGC application package process CWL
-      run: python3 ${{ github.action_path }}/build_cwl_workflow.py --config-file ${{ inputs.algorithm-configuration-path }} --cwl-template-file  ${{ github.action_path }}/templates/process.v1_2.cwl
+      run: python3 ${{ github.action_path }}/build_cwl_workflow.py --config-file ${{ inputs.algorithm-configuration-path }} --cwl-workflow-dir ${{ inputs.cwl-workflow-dir }} --cwl-template-file  ${{ github.action_path }}/templates/process.v1_2.cwl
       shell: bash
       env:
         GITHUB_ACTION_PATH: ${{ github.action_path }}

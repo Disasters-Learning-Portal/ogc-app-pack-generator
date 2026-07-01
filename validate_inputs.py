@@ -14,7 +14,7 @@ def validate_algorithm_config_file():
     """Validate algorithm config yml file."""
     config_path = os.environ.get('CONFIG_FILE_PATH', '')
     if not config_path:
-        print("ERROR: config-file-path is required.")
+        print("ERROR: algorithm-configuration-path is required.")
         return False
     
     try:

@@ -27,7 +27,7 @@ jobs:
         env:
           DOCKER_TAG: ghcr.io/maap-project/ogc-app-pack-generator:test
           GIT_COMMIT_HASH: ${{ github.sha }}
-          WORKFLOW_FILE_NAME: process_test.cwl
+          CWL_WORKFLOW_FILE_NAME: process_test.cwl
         run: |
           python3 build_cwl_workflow.py \
             --config-file data/algorithm_config.yml \

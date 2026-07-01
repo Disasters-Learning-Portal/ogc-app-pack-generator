@@ -14,7 +14,7 @@ The CWL workflow file generated is validated using [cwltool](https://pypi.org/pr
 
 | Parameter        | Description           | Required | Default | Type  | Example |
 |:-------------|:---------------------|:-----:|:-----:|:-----:|:-------|
-| config-file-path | Path to the algorithm config file | Yes | - | string | `my_algo_repo/algorithm_config.yml` |
+| algorithm-configuration-path | Path to the algorithm config file | Yes | - | string | `my_algo_repo/algorithm_config.yml` |
 | cwl-workflow-dir | Directory to which generated CWL workflow files will be written | No | `cwl_workflows` | string | `cwl_workflows` |
 | dockerfile-path | Path to Dockerfile that will be used to build the docker image | Yes | - | string | `my_algo_repo/Dockerfile` |
 | deploy-app-pack | Flag indicating whether or not to deploy the application package to a registry | No | false | Boolean | `true` |
@@ -57,7 +57,7 @@ jobs:
         uses: MAAP-Project/ogc-app-pack-generator@main
         with:
           # Specify action inputs
-          config-file-path: my_algo_repo/algorithm_config.yml
+          algorithm-configuration-path: my_algo_repo/algorithm_config.yml
           dockerfile-path: my_algo_repo/Dockerfile
           deploy-app-pack: true
           app-pack-register-endpoint: https://api.uat.maap-project.org/api/ogc/processes
@@ -68,16 +68,9 @@ jobs:
 
 Update the following action inputs:
 
-- `config-file-path`: Update this to the path to your config yml file. See `data/algorithm_config.yml` for an example.
+- `algorithm-configuration-path`: Update this to the path to your config yml file. See `data/algorithm_config.yml` for an example.
 - `dockerfile-path`: Update this to the path to your Dockerfile.
 - `app-pack-register-endpoint`: Update this to the URL the registration request will be sent to.
-
-| Parameter        | Description           | Required | Default | Type  |
-|:-------------:|:---------------------:|:-----:|:-----:|:-----:|
-| algorithm-configuration-path | Path to the algorithm configuration YAML file | Yes | - | string ex. `nasa/ogc/algorithm_config.yml` |
-| dockerfile-path | Path to the Dockerfile used to build the algorithm image. Omit if `algorithm_container_url` is set in the config file (the two are mutually exclusive). | No | - | string ex. `nasa/Dockerfile` |
-| deploy-app-pack | Whether to deploy the application package to a registry | No | `false` | boolean ex. `true` |
-| app-pack-register-endpoint | Deployment request URL for the application package registry. Required when `deploy-app-pack` is `true`. | No | - | string ex. `https://api.dit.maap-project.org/api/ogc/processes` |
 
 > [!NOTE]
 > To use a prebuilt container image instead of building one from a Dockerfile, set `algorithm_container_url` in the algorithm configuration YAML file and omit `dockerfile-path`. Exactly one of the two must be provided.
