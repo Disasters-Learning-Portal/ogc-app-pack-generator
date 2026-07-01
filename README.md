@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Use OGC App Pack Generator Action
-        uses: MAAP-Project/ogc-app-pack-generator@main
+        uses: MAAP-Project/ogc-app-pack-generator@1.0.0
         with:
           # Specify action inputs
           algorithm-configuration-path: my_algo_repo/algorithm_config.yml
