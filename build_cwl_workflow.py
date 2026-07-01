@@ -1,10 +1,5 @@
 '''
-Builds a CWL workflow from a yml input file.
-
-Inputs:
-
---config-file-path (required)
-yml file containing algorithm information that will be parsed to create the CWL workflow file.
+Builds a CWL workflow from a YAML file containing algorithm information that will be parsed to create the workflow file.
 See data/algorithm_config.yml for an example. This example contains the information
 needed to create a CWL workflow that is compliant with OGC and CWL best practices.
 
@@ -23,7 +18,7 @@ them. For example, if the process name is `myProcess` and its version is `main`,
 workflow file will be named `process_myProcess_main.cwl`.
 
 Sample execution:
-build_cwl_workflow.py --config-file-path data/algorithm_config.yml --cwl-workflow-dir cwl_workflows
+build_cwl_workflow.py --config-file data/algorithm_config.yml --workflow-output-dir workflows/
 
 '''
 
@@ -90,19 +85,19 @@ def add_input_default(input_type, input_default):
         
             
 
-def yaml_to_cwl(config_file, cwl_workflow_dir, template_file):
+def yaml_to_cwl(config_file, workflow_output_dir, template_file):
     """
     Create a CWL file compliant with CWL and OGC best practices from a yml input file.
 
     Args:
-        config_file (str): Path to input yml file.
-        cwl_workflow_dir (str): Path to workflow output directory.
+        config_file (str): Path to input YAML file.
+        workflow_output_dir (str): Path to workflow output directory.
         template_file (str): Path to CWL template file to use when building CWL file.
 
     Return:
         None
     """
-    # Load workflow configuration YML file
+    # Load workflow configuration YAML file
     with open(config_file, 'r') as f:
         config = yaml.safe_load(f)
 
@@ -120,7 +115,7 @@ def yaml_to_cwl(config_file, cwl_workflow_dir, template_file):
     # See CWL v1.2 docs here: https://www.commonwl.org/v1.2/Workflow.html#Workflow 
     # See OGC docs here: https://docs.ogc.org/bp/20-089r1.html#toc24
     
-    # Define mapping of yml input file fields to OGC and CWL generic fields
+    # Define mapping of YAML input file fields to OGC and CWL generic fields
     OGC_CWL_KEY_MAP = {
                 "algorithm_description": [("$graph", 0, "doc")],
                 "algorithm_name": [("$graph", 0, "label"), ("$graph", 0, "id")],
@@ -251,12 +246,12 @@ def yaml_to_cwl(config_file, cwl_workflow_dir, template_file):
     workflow["$graph"][0]["steps"]["process"]["out"] = step_outputs
 
     # Add information that is required to be compliant with OGC and CWL best practices
-    # that should not be in the yml input file
+    # that will not be in the YAML input file
     workflow["s:dateCreated"] = date.today()
     workflow["s:softwareVersion"] = "1.0.0"
     workflow["$graph"][1]["requirements"]["DockerRequirement"]["dockerPull"] = os.getenv('DOCKER_TAG')
 
-    # Add information that is not required to be compliant with OGC and CWL best practices and should not be in the yml input file,
+    # Add information that is not required to be compliant with OGC and CWL best practices and is not in the YAML input file,
     # yet is desired by MAAP.
     workflow["s:commitHash"] = os.getenv('GIT_COMMIT_HASH')
 
@@ -268,11 +263,11 @@ def yaml_to_cwl(config_file, cwl_workflow_dir, template_file):
     print(f"CWL workflow saved to {workflow_file}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convert yml configuration to CWL workflow.")
-    parser.add_argument("--config-file-path", type=str, help="Path to the input workflow YML configuration file.", required=True)
-    parser.add_argument("--cwl-workflow-dir", type=str, default="cwl_workflows", help="Directory workflow files will be written to. If not provided, `workflows` will be used as default. If the `workflows` directory does not exist, it will be created.")
+    parser = argparse.ArgumentParser(description="Convert YAML workflow configuration to CWL workflow.")
+    parser.add_argument("--config-file", type=str, help="Path to the input workflow YAML configuration file.", required=True)
+    parser.add_argument("--workflow-output-dir", type=str, default="cwl_workflows", help="Directory workflow files will be written to. If not provided, `workflows` will be used as default. If the `workflows` directory does not exist, it will be created.")
     parser.add_argument("--cwl-template-file", type=str, default="templates/process.v1_2.cwl", help="Path to the CWL template file. Default template used is compliant with CWL v1.2.")
 
     args = parser.parse_args()
-    print("Building CWL workflow file...\nInput file: {} \nWorkflow output directory: {} \nCWL template file: {}".format(args.config_file_path, args.cwl_workflow_dir, args.cwl_template_file))
-    yaml_to_cwl(args.config_file_path, args.cwl_workflow_dir, args.cwl_template_file)
+    print("Building CWL workflow file...\nInput file: {} \nWorkflow output directory: {} \nCWL template file: {}".format(args.config_file, args.workflow_output_dir, args.cwl_template_file))
+    yaml_to_cwl(args.config_file, args.workflow_output_dir, args.cwl_template_file)

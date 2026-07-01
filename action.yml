@@ -1,23 +1,17 @@
-name: "Build & Deploy OGC Application Package"
-description: "A GitHub Action to build & deploy an OGC Application Package."
+name: "Build OGC Application Package"
+author: "MAAP-Project"
+description: "A GitHub Action to build an OGC Application Package."
 inputs:
-  config-file-path:
-    description: "Path to the algorithm config file"
-    required: true
-  cwl-workflow-dir:
-    description: "Directory to which generated CWL workflow files will be written"
-    required: false
-    default: "cwl_workflows/"
-  github-token:
-    description: "GitHub token for authentication"
+  algorithm-configuration-path:
+    description: "Path to the algorithm configuration YAML file"
     required: true
   dockerfile-path:
     description: "Path to Dockerfile"
     required: false
   deploy-app-pack:
     description: "Flag that controls whether or not to deploy application package"
-    required: true
-    default: false
+    required: false
+    default: "false"
   app-pack-register-endpoint:
     description: "URL to application package registry to deploy application packages to"
     required: false
@@ -26,9 +20,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout repo content
-      uses: actions/checkout@v6
-
     - name: Setup Python
       uses: actions/setup-python@v6
       with:
@@ -62,8 +53,8 @@ runs:
           echo "CWL_WORKFLOW_FILE_NAME=$CWL_WORKFLOW_FILE_NAME" >>${GITHUB_ENV}
       shell: bash
 
-    - name: Generate OGC application package CWL
-      run: python3 ${{ github.action_path }}/build_cwl_workflow.py --config-file-path ${{ inputs.config-file-path }} --cwl-workflow-dir ${{ inputs.cwl-workflow-dir }} --cwl-template-file  ${{ github.action_path }}/templates/process.v1_2.cwl
+    - name: Generate OGC application package process CWL
+      run: python3 ${{ github.action_path }}/build_cwl_workflow.py --config-file ${{ inputs.algorithm-configuration-path }} --cwl-template-file  ${{ github.action_path }}/templates/process.v1_2.cwl
       shell: bash
       env:
         GITHUB_ACTION_PATH: ${{ github.action_path }}
@@ -121,3 +112,7 @@ runs:
         RAW_URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/${FILE_PATH}"
         python3 ${{ github.action_path }}/deploy_app_pack.py --process-cwl-url ${RAW_URL} --app-pack-register-endpoint ${{ inputs.app-pack-register-endpoint }} --app-pack-template-file ${{ github.action_path }}/templates/ogcapppkg.yml
       shell: bash
+
+branding:
+  icon: "package"
+  color: "blue"

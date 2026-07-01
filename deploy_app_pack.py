@@ -69,7 +69,7 @@ def deploy_app_pack(process_cwl_url, app_pack_registry, template_file):
         None
         
     Raises:
-        ValueError: Raises a ValueError if the MAAP token is not set. This token is required to deploy processes.
+        ValueError: Raises a ValueError if the MAAP_TOKEN is not set. This token is required to deploy processes.
     """
     with open(template_file, 'r') as f:
         data = yaml.safe_load(f)

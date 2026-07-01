@@ -1,13 +1,16 @@
 # OGC Application Package Generator
 GitHub action to build & deploy Open Geospatial Consortium (OGC) application packages to the MAAP. 
 
-An OGC application package is a [Common Workflow Language (CWL)](https://www.commonwl.org/) workflow with an executable (typically a Docker image). Algorithms that are bundled as OGC application packages may be run on any OGC-compliant platform without modification. For more information on the OGC standards, see [here](https://www.ogc.org/).
+This action builds a CWL workflow file from an input YAML file. The CWL workflow file is validated using `cwltool` and `ogc_ap_validator` to ensure it is compliant with CWL and OGC best practices. It is then committed to the client repository's working branch under `cwl_workflows/`. A docker image will be built from the user-specified Dockerfile and pushed to the client repository's GitHub Container Registry.
 
-This action builds a CWL workflow file and commits it to the client repository's working branch under `cwl_workflows/` by default. A docker image will be built from the user-provided Dockerfile then pushed to the client repository's GitHub Container Registry.
+See `data/algorithm_config.yml` for a sample YAML input file.
 
 The CWL workflow file generated is validated using [cwltool](https://pypi.org/project/cwltool/) and [ogc_ap_validator](https://pypi.org/project/ogc-ap-validator/) to ensure it is compliant with CWL and OGC best practices.
 
-### Inputs:
+> [!IMPORTANT]
+> This action **writes to your repository**. On each run it commits the generated CWL workflow file to `cwl_workflows/` on the triggering branch and pushes the commit back using the workflow's `GITHUB_TOKEN`. It also builds and pushes a Docker image to your repository's GitHub Container Registry (when `dockerfile-path` is set). Because of this, the calling workflow must grant `contents: write` and `packages: write` permissions (see the sample below), and the action must run on a branch it is allowed to push to. Do not use this action on untrusted pull requests.
+
+## Build OGC application package using GitHub actions
 
 | Parameter        | Description           | Required | Default | Type  | Example |
 |:-------------|:---------------------|:-----:|:-----:|:-----:|:-------|
@@ -28,7 +31,10 @@ To use this action, create a GitHub workflow file in your repository:
 
 `touch .github/workflows/my_workflow.yml`
 
-Copy the sample workflow below into `my_workflow.yml`:
+Copy the sample workflow below into `my_workflow.yml` and be sure to change the action inputs if needed.
+
+> [!NOTE]
+> Your workflow **must check out the repository** (with `actions/checkout`) in a step before invoking this action, as shown below. The action operates on the checked-out working tree and pushes the generated workflow file back to it.
 
 ```
 on:
@@ -56,8 +62,8 @@ jobs:
           deploy-app-pack: true
           app-pack-register-endpoint: https://api.uat.maap-project.org/api/ogc/processes
         env:
-          # MAAP token is required to deploy the algorithm to the MAAP
-          MAAP_TOKEN: ${{ secrets.MAAP_TOKEN }}
+          # MAAP token is required to deploy the process
+          MAAP_TOKEN: ${{ secrets.MAAP_TOKEN_MLUCAS }}
 ```
 
 Update the following action inputs:
@@ -66,7 +72,21 @@ Update the following action inputs:
 - `dockerfile-path`: Update this to the path to your Dockerfile.
 - `app-pack-register-endpoint`: Update this to the URL the registration request will be sent to.
 
-If deploying the application package to the MAAP, you will need to provide your MAAP token. Retrieve the token from your MAAP profile and add it as a secret to your GitHub repository. Be sure to name this token `MAAP_TOKEN`.
+| Parameter        | Description           | Required | Default | Type  |
+|:-------------:|:---------------------:|:-----:|:-----:|:-----:|
+| algorithm-configuration-path | Path to the algorithm configuration YAML file | Yes | - | string ex. `nasa/ogc/algorithm_config.yml` |
+| dockerfile-path | Path to the Dockerfile used to build the algorithm image. Omit if `algorithm_container_url` is set in the config file (the two are mutually exclusive). | No | - | string ex. `nasa/Dockerfile` |
+| deploy-app-pack | Whether to deploy the application package to a registry | No | `false` | boolean ex. `true` |
+| app-pack-register-endpoint | Deployment request URL for the application package registry. Required when `deploy-app-pack` is `true`. | No | - | string ex. `https://api.dit.maap-project.org/api/ogc/processes` |
+
+> [!NOTE]
+> To use a prebuilt container image instead of building one from a Dockerfile, set `algorithm_container_url` in the algorithm configuration YAML file and omit `dockerfile-path`. Exactly one of the two must be provided.
+
+### Environment variables:
+
+| Variable | Description | Required |
+|:-------------:|:---------------------:|:-----:|
+| MAAP_TOKEN | Auth token sent with the deployment request (as the `proxy-ticket` header). Only needed when `deploy-app-pack` is `true`. Pull it from the client repository's secrets store as shown in the sample workflow above. | Conditional |
 
 > [!NOTE]
 > The workflow is currently set to trigger on a push to any branch. To limit workflow triggering to a specific branch, replace `'**'` with your branch name.
@@ -74,7 +94,7 @@ If deploying the application package to the MAAP, you will need to provide your 
 ## Working locally
 If you want to build a CWL workflow file outside the GitHub action, you may do so by cloning this repository and running the following command:
 
-`python build_cwl_workflow.py --config-file-path data/algorithm_config.yml`
+`python build_cwl_workflow.py --config-file data/algorithm_config.yml`
 
 This will create `cwl_workflows/process.cwl`.
 
@@ -129,9 +149,9 @@ Sample command to execute a CWL workflow (be sure to provide any required inputs
 
 `cwltool cwl_workflows/process.cwl --input_1 "input1" --input_2 "input2"`
 
-Inputs may also be provided as a yml file, for example:
+Inputs may also be provided as a YAML file, for example:
 
 `cwltool cwl_workflows/process.cwl data/input.yml`
 
-See `data/input.yml` for a sample yml input file.
+See `data/input.yml` for a sample YAML input file.
 

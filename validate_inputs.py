@@ -31,7 +31,7 @@ def validate_algorithm_config_file():
     # If algorithm_container_url is provided in yaml file, there won't be a need to build a container.
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
-        algorithm_container_url = config.get('algorithm_container_url', '').strip()
+        algorithm_container_url = (config.get('algorithm_container_url') or '').strip()
         dockerfile_path = os.environ.get('DOCKERFILE_PATH', '')
         has_container = bool(algorithm_container_url)
         has_dockerfile_path = bool(dockerfile_path)

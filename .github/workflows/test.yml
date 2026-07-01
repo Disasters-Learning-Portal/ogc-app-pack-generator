@@ -1,0 +1,40 @@
+name: Test action
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate CWL workflow from sample config
+        env:
+          DOCKER_TAG: ghcr.io/maap-project/ogc-app-pack-generator:test
+          GIT_COMMIT_HASH: ${{ github.sha }}
+          WORKFLOW_FILE_NAME: process_test.cwl
+        run: |
+          python3 build_cwl_workflow.py \
+            --config-file data/algorithm_config.yml \
+            --cwl-template-file templates/process.v1_2.cwl
+
+      - name: Validate generated CWL (cwltool)
+        run: cwltool --validate --strict --verbose cwl_workflows/process_test.cwl
+
+      - name: Validate OGC compliance (ap-validator)
+        run: ap-validator --detail all cwl_workflows/process_test.cwl
