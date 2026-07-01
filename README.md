@@ -50,7 +50,7 @@ jobs:
 
 3. Update the following action inputs:
 
-- `algorithm-configuration-path`: Update this to the path to your config yml file. See `data/algorithm_config.yml` for an example.
+- `algorithm-configuration-path`: Update this to the path to your config YAML file. See `data/algorithm_config.yml` for an example.
 - `dockerfile-path`: Update this to the path to your Dockerfile.
 - `app-pack-register-endpoint`: Update this to the URL the registration request will be sent to.
 
@@ -67,7 +67,7 @@ jobs:
 | app-pack-register-endpoint | URL to send registration request to | No | - | string | `https://api.uat.maap-project.org/api/ogc/processes` |
 | MAAP token | The MAAP token used in the application package deployment request. The sample workflow shows this parameter being accessed from the client repository's secrets store. | No | - | string | `PGT-XXXX` or `JWT-XXXX` |
 
-The algorithm config file is a yml file that contains fields required to generate the CWL workflow that is compliant with CWL and OGC best practices. See `data/algorithm_config.yml` as an example.
+The algorithm config file is a YAML file that contains fields required to generate the CWL workflow that is compliant with CWL and OGC best practices. See `data/algorithm_config.yml` as an example.
 
 See `data/process_sardem-sarsen_mlucas_nasa-ogc.cwl` for a sample CWL workflow file that was generated using this action.
 

@@ -87,7 +87,7 @@ def add_input_default(input_type, input_default):
 
 def yaml_to_cwl(config_file, cwl_workflow_dir, template_file):
     """
-    Create a CWL file compliant with CWL and OGC best practices from a yml input file.
+    Create a CWL file compliant with CWL and OGC best practices from a YAML input file.
 
     Args:
         config_file (str): Path to input YAML file.

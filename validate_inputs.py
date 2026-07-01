@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from pathlib import Path
 
 def validate_algorithm_config_file():
-    """Validate algorithm config yml file."""
+    """Validate algorithm config YAML file."""
     config_path = os.environ.get('CONFIG_FILE_PATH', '')
     if not config_path:
         print("ERROR: algorithm-configuration-path is required.")
