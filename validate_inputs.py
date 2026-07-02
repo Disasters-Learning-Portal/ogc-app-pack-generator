@@ -28,7 +28,7 @@ def validate_algorithm_config_file():
         print(f"ERROR: Cannot read algorithm configuration file: {e}")
         return False
 
-    # If algorithm_container_url is provided in yaml file, there won't be a need to build a container.
+    # If algorithm_container_url is provided in YAML file, there won't be a need to build a container.
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
         algorithm_container_url = (config.get('algorithm_container_url') or '').strip()

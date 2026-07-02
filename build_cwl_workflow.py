@@ -3,6 +3,11 @@ Builds a CWL workflow from a YAML file containing algorithm information that wil
 See data/algorithm_config.yml for an example. This example contains the information
 needed to create a CWL workflow that is compliant with OGC and CWL best practices.
 
+Inputs:
+
+--config-file (required)
+The path to the algorithm configuration YAML file.
+
 --cwl-workflow-dir (optional)
 The directory the CWL workflow files will be written to. If not provided, the default is `cwl_workflows`
 and the directory will be created if it does not exist.
@@ -11,13 +16,16 @@ and the directory will be created if it does not exist.
 Template file to use when creating the workflow file. Currently, only CWL v1.2 is supported and
 will be used by default if not provided.
 
+
 Outputs:
 
 CWL v1.2 workflow file. Workflow file names will have the process name and version appended to
 them. For example, if the process name is `myProcess` and its version is `main`, the resulting 
 workflow file will be named `process_myProcess_main.cwl`.
 
+
 Sample execution:
+
 build_cwl_workflow.py --config-file data/algorithm_config.yml --cwl-workflow-dir cwl_workflows/
 
 '''

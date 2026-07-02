@@ -7,6 +7,25 @@ on:
   workflow_dispatch:
 
 jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tests/requirements-dev.txt
+
+      - name: Run unit tests
+        run: pytest -v
+
   build-and-validate:
     runs-on: ubuntu-latest
     steps:
@@ -38,3 +57,27 @@ jobs:
 
       - name: Validate OGC compliance (ap-validator)
         run: ap-validator --detail all cwl_workflows/process_test.cwl
+
+  # End-to-end negative check: the composite action must fail when a required
+  # input is missing (GitHub does not enforce `required: true` at runtime).
+  action-rejects-missing-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Run action with missing config path (expected to fail)
+        id: run
+        continue-on-error: true
+        uses: ./
+        with:
+          algorithm-configuration-path: ""
+          dockerfile-path: Dockerfile
+
+      - name: Assert the action failed
+        run: |
+          if [ "${{ steps.run.outcome }}" != "failure" ]; then
+            echo "Expected the action to fail on missing algorithm-configuration-path, but outcome was '${{ steps.run.outcome }}'"
+            exit 1
+          fi
+          echo "Action correctly rejected the missing input."

@@ -138,3 +138,13 @@ Inputs may also be provided as a YAML file, for example:
 
 See `data/input.yml` for a sample YAML input file.
 
+## Running the tests
+
+From the repository root, install the test dependencies and run the suite with
+[pytest](https://pypi.org/project/pytest/):
+
+```
+pip install -r tests/requirements-dev.txt
+pytest
+```
+
