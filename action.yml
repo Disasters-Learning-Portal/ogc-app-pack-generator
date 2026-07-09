@@ -116,13 +116,11 @@ runs:
       run: |
         FILE_PATH=${{ inputs.cwl-workflow-dir }}/${{ env.CWL_WORKFLOW_FILE_NAME }}
         RAW_URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/${FILE_PATH}"
-        RESPONSE=$(python3 ${{ github.action_path }}/deploy_app_pack.py --process-cwl-url ${RAW_URL} --app-pack-register-endpoint ${{ inputs.app-pack-register-endpoint }} --app-pack-template-file ${{ github.action_path }}/templates/ogcapppkg.yml)
-        echo "${RESPONSE}"
+        python3 ${{ github.action_path }}/deploy_app_pack.py --process-cwl-url ${RAW_URL} --app-pack-register-endpoint ${{ inputs.app-pack-register-endpoint }} --app-pack-template-file ${{ github.action_path }}/templates/ogcapppkg.yml
 
-        PIPELINE_LINK=$(echo "${RESPONSE}" | tail -1 | jq -r '.processPipelineLink.href // empty')
-        if [ -n "${PIPELINE_LINK}" ]; then
+        if [ -n "${PROCESS_PIPELINE_LINK}" ]; then
           echo "## Deployment" >> $GITHUB_STEP_SUMMARY
-          echo "Process pipeline: ${PIPELINE_LINK}" >> $GITHUB_STEP_SUMMARY
+          echo "Process pipeline: ${PROCESS_PIPELINE_LINK}" >> $GITHUB_STEP_SUMMARY
         fi
       shell: bash
 

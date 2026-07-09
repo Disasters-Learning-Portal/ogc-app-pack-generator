@@ -14,45 +14,45 @@ The CWL workflow file generated is validated using [cwltool](https://pypi.org/pr
 
 1. To use this action, create a GitHub workflow file in your repository:
 
-`touch .github/workflows/my_workflow.yml`
+    `touch .github/workflows/my_workflow.yml`
 
 2. Copy the sample workflow below into `my_workflow.yml` and be sure to change the action inputs if needed.
 
-```
-on:
-  push:
-    branches:
-      - '**'
-jobs:
-  build_app_pack:
-    runs-on: ubuntu-latest
+    ```
+    on:
+      push:
+        branches:
+          - '**'
+    jobs:
+      build_app_pack:
+        runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-      packages: write
+        permissions:
+          contents: write
+          packages: write
 
-    steps:
-      - name: Checkout repo content
-        uses: actions/checkout@v6
+        steps:
+          - name: Checkout repo content
+            uses: actions/checkout@v6
 
-      - name: Use OGC App Pack Generator Action
-        uses: MAAP-Project/ogc-app-pack-generator@1.0.0
-        with:
-          # Specify action inputs
-          algorithm-configuration-path: my_algo_repo/algorithm_config.yml
-          dockerfile-path: my_algo_repo/Dockerfile
-          deploy-app-pack: true
-          app-pack-register-endpoint: https://api.uat.maap-project.org/api/ogc/processes
-        env:
-          # MAAP token is required to deploy the process
-          MAAP_TOKEN: ${{ secrets.MAAP_TOKEN }}
-```
+          - name: Use OGC App Pack Generator Action
+            uses: MAAP-Project/ogc-app-pack-generator@1.0.0
+            with:
+              # Specify action inputs
+              algorithm-configuration-path: my_algo_repo/algorithm_config.yml
+              dockerfile-path: my_algo_repo/Dockerfile
+              deploy-app-pack: true
+              app-pack-register-endpoint: https://api.uat.maap-project.org/api/ogc/processes
+            env:
+              # MAAP token is required to deploy the process
+              MAAP_TOKEN: ${{ secrets.MAAP_TOKEN }}
+    ```
 
 3. Update the following action inputs:
 
-- `algorithm-configuration-path`: Update this to the path to your config YAML file. See `data/algorithm_config.yml` for an example.
-- `dockerfile-path`: Update this to the path to your Dockerfile.
-- `app-pack-register-endpoint`: Update this to the URL the registration request will be sent to.
+  - `algorithm-configuration-path`: Update this to the path to your config YAML file. See `data/algorithm_config.yml` for an example.
+  - `dockerfile-path`: Update this to the path to your Dockerfile.
+  - `app-pack-register-endpoint`: Update this to the URL the registration request will be sent to.
 
 4. Create a GitHub repository secret named `MAAP_TOKEN` and set its value to the value of your MAAP token. See GitHub instructions [here](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository).
 
