@@ -1,6 +1,6 @@
-name: "Build OGC Application Package"
+name: "Build & Deploy OGC Application Package"
 author: "MAAP-Project"
-description: "A GitHub Action to build an OGC Application Package."
+description: "A GitHub Action to build & deploy an OGC Application Package."
 inputs:
   algorithm-configuration-path:
     description: "Path to the algorithm configuration YAML file"
@@ -111,17 +111,19 @@ runs:
         git push
       shell: bash
 
-    - name: "Deploy: Deploy application package"
+    - name: "Deploy: Submit request for deployment"
       if: ${{ inputs.deploy-app-pack == 'true' }}
       run: |
         FILE_PATH=${{ inputs.cwl-workflow-dir }}/${{ env.CWL_WORKFLOW_FILE_NAME }}
         RAW_URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/${FILE_PATH}"
         python3 ${{ github.action_path }}/deploy_app_pack.py --process-cwl-url ${RAW_URL} --app-pack-register-endpoint ${{ inputs.app-pack-register-endpoint }} --app-pack-template-file ${{ github.action_path }}/templates/ogcapppkg.yml
+      shell: bash
 
-        if [ -n "${PROCESS_PIPELINE_LINK}" ]; then
-          echo "## Deployment" >> $GITHUB_STEP_SUMMARY
-          echo "Process pipeline: ${PROCESS_PIPELINE_LINK}" >> $GITHUB_STEP_SUMMARY
-        fi
+    - name: "Deploy: Write deployment summary"
+      if: ${{ inputs.deploy-app-pack == 'true' && env.PROCESS_PIPELINE_LINK != '' }}
+      run: |
+        echo "## Deployment" >> $GITHUB_STEP_SUMMARY
+        echo "Process pipeline: ${PROCESS_PIPELINE_LINK}" >> $GITHUB_STEP_SUMMARY
       shell: bash
 
 branding:

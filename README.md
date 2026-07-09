@@ -24,7 +24,7 @@ The CWL workflow file generated is validated using [cwltool](https://pypi.org/pr
         branches:
           - '**'
     jobs:
-      build_app_pack:
+      generate_app_pack:
         runs-on: ubuntu-latest
 
         permissions:
