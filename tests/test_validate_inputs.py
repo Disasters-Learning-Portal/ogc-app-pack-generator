@@ -75,13 +75,28 @@ def test_dockerfile_only_passes_and_sets_docker_tag(tmp_path, monkeypatch, githu
     monkeypatch.setenv("CONFIG_FILE_PATH", cfg)
     monkeypatch.setenv("DOCKERFILE_PATH", "Dockerfile")
     assert vi.validate_algorithm_config_file() is True
-    # repo is lowercased, ref becomes the image tag
-    assert "DOCKER_TAG=ghcr.io/owner/repo:main" in github_env.read_text()
+    env = github_env.read_text()
+    # image name comes from the algorithm name (owner namespace), ref is the tag
+    assert "DOCKER_TAG=ghcr.io/owner/demo:main" in env
+    # CWL file name is derived from the algorithm name and branch
+    assert "CWL_WORKFLOW_FILE_NAME=process_demo_main.cwl" in env
 
 
 def test_container_url_only_passes_and_sets_docker_tag(tmp_path, monkeypatch, github_env):
-    cfg = _write_config(tmp_path, "algorithm_container_url: ghcr.io/x/y:1.2.3\n")
+    cfg = _write_config(
+        tmp_path,
+        "algorithm_name: demo\nalgorithm_container_url: ghcr.io/x/y:1.2.3\n",
+    )
     monkeypatch.setenv("CONFIG_FILE_PATH", cfg)
     monkeypatch.setenv("DOCKERFILE_PATH", "")
     assert vi.validate_algorithm_config_file() is True
-    assert "DOCKER_TAG=ghcr.io/x/y:1.2.3" in github_env.read_text()
+    env = github_env.read_text()
+    assert "DOCKER_TAG=ghcr.io/x/y:1.2.3" in env
+    assert "CWL_WORKFLOW_FILE_NAME=process_demo_main.cwl" in env
+
+
+def test_missing_algorithm_name_fails(tmp_path, monkeypatch, github_env):
+    cfg = _write_config(tmp_path, "algorithm_description: no name here\n")
+    monkeypatch.setenv("CONFIG_FILE_PATH", cfg)
+    monkeypatch.setenv("DOCKERFILE_PATH", "Dockerfile")
+    assert vi.validate_algorithm_config_file() is False

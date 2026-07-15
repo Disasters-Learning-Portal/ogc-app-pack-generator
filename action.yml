@@ -44,20 +44,6 @@ runs:
         DOCKERFILE_PATH: ${{ inputs.dockerfile-path }}
         CONFIG_FILE_PATH: ${{ inputs.algorithm-configuration-path }}
 
-    - name: "Build: Create env variable of lowercase GitHub repo name"
-      run: |
-          GITHUB_REPO_LOWER=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
-          echo "GITHUB_REPO_LOWER=$GITHUB_REPO_LOWER" >>${GITHUB_ENV}
-      shell: bash
-
-    - name: "Build: Set workflow file name environment variable"
-      run: |
-          REPO_NAME=$(basename ${{ env.GITHUB_REPO_LOWER }})
-          CWL_WORKFLOW_FILE_NAME="process_${REPO_NAME}_${GITHUB_REF_NAME}.cwl"
-          CWL_WORKFLOW_FILE_NAME="${CWL_WORKFLOW_FILE_NAME//\//_}"
-          echo "CWL_WORKFLOW_FILE_NAME=$CWL_WORKFLOW_FILE_NAME" >>${GITHUB_ENV}
-      shell: bash
-
     - name: "Build: Generate OGC application package process CWL"
       run: python3 ${{ github.action_path }}/build_cwl_workflow.py --config-file ${{ inputs.algorithm-configuration-path }} --cwl-workflow-dir ${{ inputs.cwl-workflow-dir }} --cwl-template-file  ${{ github.action_path }}/templates/process.v1_2.cwl
       shell: bash
@@ -123,7 +109,7 @@ runs:
       if: ${{ inputs.deploy-app-pack == 'true' && env.PROCESS_PIPELINE_LINK != '' }}
       run: |
         echo "## Deployment" >> $GITHUB_STEP_SUMMARY
-        echo "Process pipeline: ${PROCESS_PIPELINE_LINK}" >> $GITHUB_STEP_SUMMARY
+        echo "View status of algorithm deployment to MAAP: ${PROCESS_PIPELINE_LINK}" >> $GITHUB_STEP_SUMMARY
       shell: bash
 
 branding:
