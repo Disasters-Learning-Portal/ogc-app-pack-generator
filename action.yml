@@ -90,18 +90,19 @@ runs:
 
         if git diff --staged --quiet; then
           echo "No changes to commit."
-          exit 0
+        else
+          git commit -m "Committed CWL workflow via github actions"
+          git push
         fi
 
-        git commit -m "Committed CWL workflow via github actions"
-        git push
+        echo "COMMIT_SHA=$(git rev-parse HEAD)" >> ${GITHUB_ENV}
       shell: bash
 
     - name: "Deploy: Submit request for deployment"
       if: ${{ inputs.deploy-app-pack == 'true' }}
       run: |
         FILE_PATH=${{ inputs.cwl-workflow-dir }}/${{ env.CWL_WORKFLOW_FILE_NAME }}
-        RAW_URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/${FILE_PATH}"
+        RAW_URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ env.COMMIT_SHA }}/${FILE_PATH}"
         python3 ${{ github.action_path }}/deploy_app_pack.py --process-cwl-url ${RAW_URL} --app-pack-register-endpoint ${{ inputs.app-pack-register-endpoint }} --app-pack-template-file ${{ github.action_path }}/templates/ogcapppkg.yml
       shell: bash
 
