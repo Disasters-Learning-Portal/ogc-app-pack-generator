@@ -71,6 +71,8 @@ runs:
       if: ${{ inputs.dockerfile-path != '' }}
       id: push-algorithm
       uses: docker/build-push-action@v7
+      env:
+        DOCKER_BUILD_SUMMARY: "false"
       with:
         context: .
         file: ${{ inputs.dockerfile-path }}
