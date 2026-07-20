@@ -123,3 +123,11 @@ Inputs may also be provided as a YML file, for example:
 
 See `data/input.yml` for a sample YML input file.
 
+## Fork notes
+
+This repository is a FORK of MAAP-Project/ogc-app-pack-generator. It carries
+one local patch: in action.yml, the "Deploy application package" step builds
+the RAW_URL from `$(git rev-parse HEAD)` instead of `github.sha`, so a run
+deploys the CWL it just pushed. This fixes an upstream "one-behind" deploy
+bug (the branch-based CWL filename is overwritten each run, so github.sha
+points at the previous run's CWL).
