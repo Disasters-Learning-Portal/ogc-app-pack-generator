@@ -64,7 +64,7 @@ jobs:
             This repo (Disasters-Learning-Portal/ogc-app-pack-generator) is a FORK of
             MAAP-Project/ogc-app-pack-generator. It carries exactly ONE local patch:
             in `action.yml`, the "Deploy application package" step builds RAW_URL from
-            `$(git rev-parse HEAD)` instead of `${{ github.sha }}`, so a run deploys the
+            `$(git rev-parse HEAD)` instead of `github.sha`, so a run deploys the
             CWL it JUST pushed. This fixes an upstream "one-behind" deploy bug: the CWL
             filename is branch-based and overwritten every run, so `github.sha` (the
             checkout commit) points at the PREVIOUS run's CWL.
@@ -74,7 +74,7 @@ jobs:
               1. Add the upstream remote and merge (or rebase) the latest upstream
                  `main` into our `main`.
               2. PRESERVE our one-behind patch: after merging, `action.yml`'s deploy
-                 RAW_URL MUST still use `$(git rev-parse HEAD)`, NOT `${{ github.sha }}`.
+                 RAW_URL MUST still use `$(git rev-parse HEAD)`, NOT `github.sha`.
                  Upstream may have moved/renamed that step — keep the fix intact and
                  keep the explanatory "# FORK PATCH ..." comment.
               3. EXCEPTION: if upstream ALREADY fixed the one-behind bug (its RAW_URL

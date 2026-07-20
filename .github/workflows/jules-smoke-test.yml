@@ -1,0 +1,34 @@
+name: Jules smoke test (TEMPORARY - delete after verifying)
+
+# One-off end-to-end proof that JULES_API_KEY + the Jules app's repo access +
+# PR creation all work. Manual only. DELETE this file after the test PR appears.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  jules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Invoke Jules with a small real task
+        uses: google-labs-code/jules-action@v1.0.0
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: main
+          prompt: |
+            Add a short "## Fork notes" section to README.md (create README.md if it
+            does not exist yet). It should say, in ~5 lines:
+
+            This repository is a FORK of MAAP-Project/ogc-app-pack-generator. It carries
+            one local patch: in action.yml, the "Deploy application package" step builds
+            the RAW_URL from `$(git rev-parse HEAD)` instead of `github.sha`, so a run
+            deploys the CWL it just pushed. This fixes an upstream "one-behind" deploy
+            bug (the branch-based CWL filename is overwritten each run, so github.sha
+            points at the previous run's CWL).
+
+            Make only that change, then open a pull request titled
+            "docs: fork notes (one-behind deploy patch)".
