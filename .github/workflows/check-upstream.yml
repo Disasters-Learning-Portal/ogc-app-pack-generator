@@ -86,7 +86,9 @@ jobs:
             `$(git rev-parse HEAD)` instead of `github.sha`, so a run deploys the
             CWL it JUST pushed. This fixes an upstream "one-behind" deploy bug: the CWL
             filename is branch-based and overwritten every run, so `github.sha` (the
-            checkout commit) points at the PREVIOUS run's CWL.
+            checkout commit) points at the PREVIOUS run's CWL. See `ONE_BEHIND_BUG.md`
+            in this repo for the full write-up (what the bug is + how to tell if
+            upstream fixed it) before deciding whether to preserve or drop the patch.
 
             Upstream `main` (https://github.com/MAAP-Project/ogc-app-pack-generator) now
             has NEW commits our fork's `main` lacks. Please:
