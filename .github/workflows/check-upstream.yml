@@ -33,7 +33,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Detect upstream drift
+      - name: Detect upstream drift + whether upstream is still buggy
         id: drift
         run: |
           git remote add upstream https://github.com/MAAP-Project/ogc-app-pack-generator.git
@@ -41,21 +41,40 @@ jobs:
           # Commits on upstream/main that our fork's main (HEAD) does not contain.
           AHEAD=$(git rev-list --count HEAD..upstream/main)
           echo "ahead=$AHEAD" >> "$GITHUB_OUTPUT"
+
+          # Is upstream STILL buggy? Reconcile only makes sense while upstream's
+          # deploy step still uses github.sha (the one-behind bug). If upstream has
+          # FIXED it, this reconcile job must NOT re-apply our patch — the retire job
+          # in disasters-product-algorithms opens the "switch back to upstream" PR.
+          # (Robust to a future action.yml -> action.yaml rename.)
+          UPSTREAM_ACTION="$(git show upstream/main:action.yml 2>/dev/null || git show upstream/main:action.yaml 2>/dev/null)"
+          if printf '%s' "$UPSTREAM_ACTION" | grep -qE 'RAW_URL=.*github\.sha'; then
+            STILL_BUGGY=true
+          else
+            STILL_BUGGY=false
+          fi
+          echo "still_buggy=$STILL_BUGGY" >> "$GITHUB_OUTPUT"
+
           if [ "$AHEAD" -gt 0 ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
             {
               echo "## Upstream drift: $AHEAD new commit(s) on MAAP-Project/ogc-app-pack-generator@main"
+              echo "Upstream still has the one-behind bug: **$STILL_BUGGY**"
               echo '```'
               git log --oneline --no-decorate HEAD..upstream/main
               echo '```'
+              if [ "$STILL_BUGGY" != "true" ]; then
+                echo "> Upstream appears **FIXED** — skipping reconcile. The retire job in"
+                echo "> disasters-product-algorithms will open the PR that switches back to upstream."
+              fi
             } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "## No upstream drift — fork is up to date with upstream/main." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Kick off Jules to reconcile the fork
-        if: steps.drift.outputs.changed == 'true'
+      - name: Kick off Jules to reconcile the fork (only if upstream is still buggy)
+        if: steps.drift.outputs.changed == 'true' && steps.drift.outputs.still_buggy == 'true'
         uses: google-labs-code/jules-action@v1.0.0
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
@@ -84,3 +103,13 @@ jobs:
                  titled "Sync fork with upstream (preserve one-behind deploy fix)".
                  In the PR body, summarize what changed upstream and state clearly
                  whether the one-behind patch was RE-APPLIED or RETIRED (case 3).
+
+      - name: Note that Jules was invoked
+        if: steps.drift.outputs.changed == 'true' && steps.drift.outputs.still_buggy == 'true'
+        run: |
+          {
+            echo "## ✅ Jules invoked to reconcile the fork"
+            echo "It opens the PR asynchronously (a couple of minutes after this run). Watch:"
+            echo "- ${{ github.server_url }}/${{ github.repository }}/pulls"
+            echo "- https://jules.google.com — your session dashboard"
+          } >> "$GITHUB_STEP_SUMMARY"
