@@ -1,0 +1,86 @@
+name: Monthly upstream drift check
+
+# This repo is a FORK of MAAP-Project/ogc-app-pack-generator carrying ONE local
+# patch: in action.yml the "Deploy application package" step builds RAW_URL from
+# `$(git rev-parse HEAD)` instead of `${{ github.sha }}`, so a run deploys the CWL
+# it JUST pushed (fixes an upstream "one-behind" deploy bug — the branch-based CWL
+# filename is overwritten each run, so github.sha points at the PREVIOUS run's CWL).
+#
+# Once a month this checks whether upstream `main` has commits our fork lacks; if
+# so, it kicks off Jules (google-labs-code/jules-action) to merge upstream, PRESERVE
+# (or retire) our patch, and open a reconcile PR.
+#
+# ── PREREQUISITES (one-time, in THIS fork repo) ─────────────────────────────
+#   • Secret JULES_API_KEY — generate at https://jules.google.com → account settings.
+#   • Connect Jules to this repo (install the Jules GitHub app) with write access,
+#     so Jules can push a branch + open the PR (it does that via its own app auth,
+#     not GITHUB_TOKEN — which is why the job only needs `contents: read`).
+on:
+  schedule:
+    - cron: '0 9 1 * *'      # 09:00 UTC on the 1st of each month
+  workflow_dispatch: {}       # allow manual runs (test the drift check any time)
+
+permissions:
+  contents: read              # checkout + drift detection; Jules opens the PR itself
+
+jobs:
+  check-upstream:
+    name: Detect upstream drift and (if any) kick off Jules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect upstream drift
+        id: drift
+        run: |
+          git remote add upstream https://github.com/MAAP-Project/ogc-app-pack-generator.git
+          git fetch upstream --quiet
+          # Commits on upstream/main that our fork's main (HEAD) does not contain.
+          AHEAD=$(git rev-list --count HEAD..upstream/main)
+          echo "ahead=$AHEAD" >> "$GITHUB_OUTPUT"
+          if [ "$AHEAD" -gt 0 ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Upstream drift: $AHEAD new commit(s) on MAAP-Project/ogc-app-pack-generator@main"
+              echo '```'
+              git log --oneline --no-decorate HEAD..upstream/main
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "## No upstream drift — fork is up to date with upstream/main." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Kick off Jules to reconcile the fork
+        if: steps.drift.outputs.changed == 'true'
+        uses: google-labs-code/jules-action@v1.0.0
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: main
+          prompt: |
+            This repo (Disasters-Learning-Portal/ogc-app-pack-generator) is a FORK of
+            MAAP-Project/ogc-app-pack-generator. It carries exactly ONE local patch:
+            in `action.yml`, the "Deploy application package" step builds RAW_URL from
+            `$(git rev-parse HEAD)` instead of `${{ github.sha }}`, so a run deploys the
+            CWL it JUST pushed. This fixes an upstream "one-behind" deploy bug: the CWL
+            filename is branch-based and overwritten every run, so `github.sha` (the
+            checkout commit) points at the PREVIOUS run's CWL.
+
+            Upstream `main` (https://github.com/MAAP-Project/ogc-app-pack-generator) now
+            has NEW commits our fork's `main` lacks. Please:
+              1. Add the upstream remote and merge (or rebase) the latest upstream
+                 `main` into our `main`.
+              2. PRESERVE our one-behind patch: after merging, `action.yml`'s deploy
+                 RAW_URL MUST still use `$(git rev-parse HEAD)`, NOT `${{ github.sha }}`.
+                 Upstream may have moved/renamed that step — keep the fix intact and
+                 keep the explanatory "# FORK PATCH ..." comment.
+              3. EXCEPTION: if upstream ALREADY fixed the one-behind bug (its RAW_URL
+                 now uses the pushed commit), DROP our patch and just take upstream's
+                 version.
+              4. Resolve any conflicts, keep the diff minimal, and open a pull request
+                 titled "Sync fork with upstream (preserve one-behind deploy fix)".
+                 In the PR body, summarize what changed upstream and state clearly
+                 whether the one-behind patch was RE-APPLIED or RETIRED (case 3).
