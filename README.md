@@ -126,8 +126,17 @@ See `data/input.yml` for a sample YML input file.
 ## Fork notes
 
 This repository is a FORK of MAAP-Project/ogc-app-pack-generator. It carries
-one local patch: in action.yml, the "Deploy application package" step builds
-the RAW_URL from `$(git rev-parse HEAD)` instead of `github.sha`, so a run
-deploys the CWL it just pushed. This fixes an upstream "one-behind" deploy
-bug (the branch-based CWL filename is overwritten each run, so github.sha
-points at the previous run's CWL).
+two local patches, both in action.yml and both marked `# FORK PATCH #N`:
+
+1. The "Deploy application package" step builds the RAW_URL from
+   `$(git rev-parse HEAD)` instead of `github.sha`, so a run deploys the CWL
+   it just pushed. This fixes an upstream "one-behind" deploy bug (the
+   branch-based CWL filename is overwritten each run, so github.sha points at
+   the previous run's CWL). See `ONE_BEHIND_BUG.md`.
+2. The four JavaScript actions are pinned to their node24 majors
+   (`actions/checkout@v7`, `actions/setup-python@v7`, `docker/login-action@v4`,
+   `docker/build-push-action@v7`). Upstream is on v4/v5/v3/v5, which all target
+   Node 20 — [deprecated on GitHub-hosted
+   runners](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/),
+   so every consumer's run warns and will break once the node20 shim is removed.
+   Drop this patch once upstream bumps.
