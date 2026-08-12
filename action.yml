@@ -22,11 +22,18 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # FORK PATCH #2 (Disasters-Learning-Portal): the four JavaScript actions below
+    # are bumped to their node24 majors. Upstream still pins actions/checkout@v4,
+    # actions/setup-python@v5, docker/login-action@v3 and docker/build-push-action@v5,
+    # all of which target Node 20 — deprecated on GitHub-hosted runners, so every run
+    # warns "Node.js 20 is deprecated ... forced to run on Node.js 24" and will break
+    # once the runner drops the node20 shim. See
+    # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
     - name: Checkout repo content
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: 3.12
 
@@ -80,7 +87,7 @@ runs:
 
     - name: Log in to GitHub Container Registry
       if: ${{ inputs.dockerfile-path != '' }}
-      uses: docker/login-action@v3
+      uses: docker/login-action@v4
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
@@ -89,7 +96,7 @@ runs:
     - name: Build and push algorithm Docker image
       if: ${{ inputs.dockerfile-path != '' }}
       id: push-algorithm
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v7
       with:
         context: .
         file: ${{ inputs.dockerfile-path }}
@@ -119,7 +126,7 @@ runs:
       if: ${{ inputs.deploy-app-pack == 'true' }}
       run: |
         FILE_PATH=cwl_workflows/${{ env.WORKFLOW_FILE_NAME }}
-        # FORK PATCH (Disasters-Learning-Portal): deploy the CWL at the commit we
+        # FORK PATCH #1 (Disasters-Learning-Portal): deploy the CWL at the commit we
         # JUST pushed (HEAD from the "Commit and push workflow file" step), NOT
         # github.sha (the checkout commit). Upstream used github.sha, which points
         # one commit BEHIND this run's generated CWL — because the CWL filename is

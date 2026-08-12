@@ -1,10 +1,15 @@
 name: Monthly upstream drift check
 
-# This repo is a FORK of MAAP-Project/ogc-app-pack-generator carrying ONE local
-# patch: in action.yml the "Deploy application package" step builds RAW_URL from
-# `$(git rev-parse HEAD)` instead of `${{ github.sha }}`, so a run deploys the CWL
-# it JUST pushed (fixes an upstream "one-behind" deploy bug — the branch-based CWL
-# filename is overwritten each run, so github.sha points at the PREVIOUS run's CWL).
+# This repo is a FORK of MAAP-Project/ogc-app-pack-generator carrying TWO local
+# patches, both in action.yml:
+#   #1 the "Deploy application package" step builds RAW_URL from
+#      `$(git rev-parse HEAD)` instead of `${{ github.sha }}`, so a run deploys the
+#      CWL it JUST pushed (fixes an upstream "one-behind" deploy bug — the
+#      branch-based CWL filename is overwritten each run, so github.sha points at
+#      the PREVIOUS run's CWL).
+#   #2 the four JavaScript actions are on their node24 majors (checkout@v7,
+#      setup-python@v7, docker/login-action@v4, docker/build-push-action@v7);
+#      upstream's v4/v5/v3/v5 all target the deprecated Node 20.
 #
 # Once a month this checks whether upstream `main` has commits our fork lacks; if
 # so, it kicks off Jules (google-labs-code/jules-action) to merge upstream, PRESERVE
@@ -29,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout fork (full history)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -81,8 +86,10 @@ jobs:
           starting_branch: main
           prompt: |
             This repo (Disasters-Learning-Portal/ogc-app-pack-generator) is a FORK of
-            MAAP-Project/ogc-app-pack-generator. It carries exactly ONE local patch:
-            in `action.yml`, the "Deploy application package" step builds RAW_URL from
+            MAAP-Project/ogc-app-pack-generator. It carries exactly TWO local patches,
+            both in `action.yml` and both marked with a "# FORK PATCH #N" comment:
+
+            PATCH #1 — the "Deploy application package" step builds RAW_URL from
             `$(git rev-parse HEAD)` instead of `github.sha`, so a run deploys the
             CWL it JUST pushed. This fixes an upstream "one-behind" deploy bug: the CWL
             filename is branch-based and overwritten every run, so `github.sha` (the
@@ -90,21 +97,32 @@ jobs:
             in this repo for the full write-up (what the bug is + how to tell if
             upstream fixed it) before deciding whether to preserve or drop the patch.
 
+            PATCH #2 — the four JavaScript actions are pinned to their node24 majors
+            (`actions/checkout@v7`, `actions/setup-python@v7`, `docker/login-action@v4`,
+            `docker/build-push-action@v7`). Upstream is on v4/v5/v3/v5, which all target
+            Node 20 — deprecated on GitHub-hosted runners.
+
             Upstream `main` (https://github.com/MAAP-Project/ogc-app-pack-generator) now
             has NEW commits our fork's `main` lacks. Please:
               1. Add the upstream remote and merge (or rebase) the latest upstream
                  `main` into our `main`.
-              2. PRESERVE our one-behind patch: after merging, `action.yml`'s deploy
-                 RAW_URL MUST still use `$(git rev-parse HEAD)`, NOT `github.sha`.
-                 Upstream may have moved/renamed that step — keep the fix intact and
-                 keep the explanatory "# FORK PATCH ..." comment.
-              3. EXCEPTION: if upstream ALREADY fixed the one-behind bug (its RAW_URL
-                 now uses the pushed commit), DROP our patch and just take upstream's
-                 version.
-              4. Resolve any conflicts, keep the diff minimal, and open a pull request
-                 titled "Sync fork with upstream (preserve one-behind deploy fix)".
+              2. PRESERVE patch #1: after merging, `action.yml`'s deploy RAW_URL MUST
+                 still use `$(git rev-parse HEAD)`, NOT `github.sha`. Upstream may have
+                 moved/renamed that step — keep the fix intact and keep the explanatory
+                 "# FORK PATCH #1 ..." comment.
+              3. PRESERVE patch #2: after merging, no action in `action.yml` (or in this
+                 repo's own workflows) may target Node 20. If the merge pulls upstream's
+                 older pins back in, re-apply the node24 majors listed above — or a NEWER
+                 major if one exists — and keep the "# FORK PATCH #2 ..." comment. Take
+                 upstream's pin only where it is already >= ours.
+              4. EXCEPTION (patch #1 only): if upstream ALREADY fixed the one-behind bug
+                 (its RAW_URL now uses the pushed commit), DROP patch #1 and just take
+                 upstream's version. Patch #2 stays either way until upstream bumps.
+              5. Resolve any conflicts, keep the diff minimal, and open a pull request
+                 titled "Sync fork with upstream (preserve fork patches)".
                  In the PR body, summarize what changed upstream and state clearly
-                 whether the one-behind patch was RE-APPLIED or RETIRED (case 3).
+                 whether the one-behind patch was RE-APPLIED or RETIRED (case 4), and
+                 whether the node24 pins needed re-applying.
 
       - name: Note that Jules was invoked
         if: steps.drift.outputs.changed == 'true' && steps.drift.outputs.still_buggy == 'true'
